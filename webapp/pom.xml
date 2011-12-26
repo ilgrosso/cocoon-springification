@@ -1,81 +1,209 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
-	<packaging>war</packaging>
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>war</packaging>
 
-	<parent>
-		<groupId>org.alveolo.cocoon</groupId>
-		<artifactId>cocoon-springification</artifactId>
-		<version>0.1-SNAPSHOT</version>
-	</parent>
+    <parent>
+        <groupId>org.alveolo.cocoon</groupId>
+        <artifactId>cocoon-springification</artifactId>
+        <version>0.1-SNAPSHOT</version>
+    </parent>
 
-	<artifactId>cocoon-springification-webapp</artifactId>
+    <artifactId>cocoon-springification-webapp</artifactId>
 
-	<name>Springifivation of Cocoon: Web Application</name>
+    <name>Springification of Cocoon: Web Application</name>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.mortbay.jetty</groupId>
-				<artifactId>jetty-maven-plugin</artifactId>
-				<version>7.0.0.v20091005</version>
-				<configuration>
-					<connectors>
-						<connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
-							<port>8888</port>
-							<maxIdleTime>30000</maxIdleTime>
-						</connector>
-					</connectors>
-					<contextPath>/</contextPath>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+    <properties>        
+        <cargo.servlet.port>8888</cargo.servlet.port>
+        <cargo.log>${project.build.directory}/log/cargo.log</cargo.log>
+        <cargo.output>${project.build.directory}/log/cargo-output.log</cargo.output>
+        
+        <tomcat.version>7.0.23</tomcat.version>
+    </properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.alveolo.cocoon</groupId>
-			<artifactId>cocoon-springification-main</artifactId>
-			<version>0.1-SNAPSHOT</version>
-		</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>org.alveolo.cocoon</groupId>
+            <artifactId>cocoon-springification-main</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
 
-		<!-- Version overriding is failing otherwise -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aop</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-orm</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
+	<!-- Version overriding is failing otherwise -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.apache.cocoon</groupId>
-			<artifactId>cocoon-spring-configurator</artifactId>
-			<version>2.1.0</version>
-		</dependency>
+        <dependency>
+            <groupId>org.apache.cocoon</groupId>
+            <artifactId>cocoon-spring-configurator</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+    </dependencies>
 
-		<!-- Override 1.6.7 bug (exsists at least up to 1.6.11) -->
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjrt</artifactId>
-			<version>1.6.6</version>
-		</dependency>
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjweaver</artifactId>
-			<version>1.6.6</version>
-		</dependency>
-	</dependencies>
+    <profiles>
+        <profile>
+            <id>cargo.jetty6x</id>
+            <build>
+                <defaultGoal>clean verify cargo:run</defaultGoal>    
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.cargo</groupId>
+                        <artifactId>cargo-maven2-plugin</artifactId>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <container>
+                                <type>embedded</type>
+                                <log>${cargo.log}</log>
+                                <output>${cargo.output}</output>    
+                            </container>
+                            <configuration>
+                                <properties>
+                                    <cargo.servlet.port>${cargo.servlet.port}</cargo.servlet.port>    
+                                </properties>
+                                <deployables>
+                                    <deployable>
+                                        <properties>
+                                            <context>/</context>
+                                        </properties>
+                                    </deployable>
+                                </deployables>
+                            </configuration>
+                        </configuration>
+                    </plugin>    
+                </plugins>
+            </build>
+        </profile>    
+
+        <profile>
+            <id>cargo.tomcat7x</id>
+            <build>
+                <defaultGoal>clean verify cargo:run</defaultGoal>    
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.cargo</groupId>
+                        <artifactId>cargo-maven2-plugin</artifactId>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <container>
+                                <containerId>tomcat7x</containerId>
+                                <zipUrlInstaller>
+                                    <url>http://archive.apache.org/dist/tomcat/tomcat-7/v${tomcat.version}/bin/apache-tomcat-${tomcat.version}.zip</url>
+                                    <downloadDir>${settings.localRepository}/org/codehaus/cargo/cargo-container-archives</downloadDir>
+                                    <extractDir>${java.io.tmpdir}</extractDir>
+                                </zipUrlInstaller>
+                                <log>${cargo.log}</log>
+                                <output>${cargo.output}</output>
+                            </container>
+                            <configuration>
+                                <type>standalone</type>
+                                <properties>
+                                    <cargo.servlet.port>${cargo.servlet.port}</cargo.servlet.port>    
+                                </properties>
+                                <deployables>
+                                    <deployable>
+                                        <properties>
+                                            <context>/</context>
+                                        </properties>
+                                    </deployable>
+                                </deployables>
+                            </configuration>
+                        </configuration>
+                    </plugin>    
+                </plugins>
+            </build>
+        </profile>  
+        
+        <profile>
+            <id>cargo.jetty7x</id>
+            <build>
+                <defaultGoal>clean verify cargo:run</defaultGoal>    
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.cargo</groupId>
+                        <artifactId>cargo-maven2-plugin</artifactId>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <container>
+                                <containerId>jetty7x</containerId>
+                                <zipUrlInstaller>
+                                    <url>http://download.eclipse.org/jetty/7.5.4.v20111024/dist/jetty-distribution-7.5.4.v20111024.zip</url>
+                                    <downloadDir>${settings.localRepository}/org/codehaus/cargo/cargo-container-archives</downloadDir>
+                                    <extractDir>${java.io.tmpdir}</extractDir>
+                                </zipUrlInstaller>
+                                <log>${cargo.log}</log>
+                                <output>${cargo.output}</output>
+                            </container>
+                            <configuration>
+                                <type>standalone</type>
+                                <properties>
+                                    <cargo.servlet.port>${cargo.servlet.port}</cargo.servlet.port>    
+                                </properties>
+                                <deployables>
+                                    <deployable>
+                                        <properties>
+                                            <context>/</context>
+                                        </properties>
+                                    </deployable>
+                                </deployables>
+                            </configuration>
+                        </configuration>
+                    </plugin>    
+                </plugins>
+            </build>
+        </profile>  
+        
+        <profile>
+            <id>cargo.jetty8x</id>
+            <build>
+                <defaultGoal>clean verify cargo:run</defaultGoal>    
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.cargo</groupId>
+                        <artifactId>cargo-maven2-plugin</artifactId>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <container>
+                                <containerId>jetty8x</containerId>
+                                <zipUrlInstaller>
+                                    <url>http://download.eclipse.org/jetty/stable-8/dist/jetty-distribution-8.0.4.v20111024.zip</url>
+                                    <downloadDir>${settings.localRepository}/org/codehaus/cargo/cargo-container-archives</downloadDir>
+                                    <extractDir>${java.io.tmpdir}</extractDir>
+                                </zipUrlInstaller>
+                                <log>${cargo.log}</log>
+                                <output>${cargo.output}</output>
+                            </container>
+                            <configuration>
+                                <type>standalone</type>
+                                <properties>
+                                    <cargo.servlet.port>${cargo.servlet.port}</cargo.servlet.port>    
+                                </properties>
+                                <deployables>
+                                    <deployable>
+                                        <properties>
+                                            <context>/</context>
+                                        </properties>
+                                    </deployable>
+                                </deployables>
+                            </configuration>
+                        </configuration>
+                    </plugin>    
+                </plugins>
+            </build>
+        </profile>  
+    </profiles>
 
 </project>

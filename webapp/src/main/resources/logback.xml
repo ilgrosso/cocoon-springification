@@ -22,15 +22,15 @@
     - Note, that you can use properties for value substitution.
     -->    
     <appender name="CORE" class="ch.qos.logback.core.FileAppender">
-        <file>${org.apache.cocoon.work.directory:-target/work}/cocoon.log</file>
+        <file>${org.apache.cocoon.work.directory:-target/log}/cocoon.log</file>
         <append>false</append>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d %-5p %t %c - %m%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger - %msg%n</pattern>
         </encoder>
     </appender>
     
     <root>
-        <level value="${org.apache.cocoon.logback.loglevel:-DEBUG}"/>
+        <level value="${org.apache.cocoon.logback.loglevel:-INFO}"/>
         <appender-ref ref="CORE"/>
     </root>
 </configuration>
